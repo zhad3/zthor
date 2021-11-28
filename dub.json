@@ -1,0 +1,14 @@
+{
+    "authors": [
+        "zhad3"
+    ],
+    "copyright": "Copyright © 2021, zhad3",
+    "description": "Library to interact with the THOR file format used as patch files for the game Ragnarok Online",
+    "license": "MIT",
+    "name": "zthor",
+    "targetType": "library",
+    "dependencies": {
+        "zencoding:windows949": "~>1.0.0",
+        "zgrf:compression": "~>1.1.0"
+    }
+}
