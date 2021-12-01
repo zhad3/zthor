@@ -1,11 +1,13 @@
 module zthor.filetable;
 
+import std.typecons : Flag, Yes;
 import zgrf.compression;
 import zthor.constants;
 import zthor.exception;
 import zthor.types;
 
-void fill(ref THOR thor, ref THORFiletable files, const(wstring)[] filters = [])
+void fill(ref THOR thor, ref THORFiletable files, const(wstring)[] filters = [],
+        Flag!"includeRemovals" includeRemovals = Yes.includeRemovals)
 in (thor.filehandle.isOpen(), "Filehandle must be open to read the filetable")
 in (thor.filesize > thor.header.filetableOffset, "THOR filesize < Filetable offset")
 {
@@ -35,7 +37,7 @@ in (thor.filesize > thor.header.filetableOffset, "THOR filesize < Filetable offs
         {
             THORFile file = extractFile(buffer, offset);
             file.thor = &thor;
-            if (inFilter(file, filters))
+            if (inFilter(file, filters) && (includeRemovals || !(file.flags & FileFlags.remove)))
             {
                 file.hash = crc32(0, file.name.toLower);
                 files.require(file.hash, file);
@@ -48,13 +50,17 @@ in (thor.filesize > thor.header.filetableOffset, "THOR filesize < Filetable offs
         {
             THORFile file = extractFile(buffer, offset);
             file.thor = &thor;
-            file.hash = crc32(0, file.name.toLower);
-            files.require(file.hash, file);
+            if (includeRemovals || !(file.flags & FileFlags.remove))
+            {
+                file.hash = crc32(0, file.name.toLower);
+                files.require(file.hash, file);
+            }
         }
     }
 }
 
-void fillSingleFile(ref THOR thor, ref THORFiletable files, const(wstring)[] filters = [])
+void fillSingleFile(ref THOR thor, ref THORFiletable files, const(wstring)[] filters = [],
+        Flag!"includeRemovals" includeRemovals = Yes.includeRemovals)
 in (thor.filehandle.isOpen(), "Filehandle must be open to read the filetable")
 in (thor.filesize > cast(ushort) thor.header.containerMode, "THOR filesize < Header size")
 {
@@ -86,16 +92,15 @@ in (thor.filesize > cast(ushort) thor.header.containerMode, "THOR filesize < Hea
     }
 
     file.offset = cast(uint) thor.filehandle.tell();
+    file.thor = &thor;
 
-    if (filters.length > 0 && inFilter(file, filters))
+    if (filters.length > 0 && inFilter(file, filters) && (includeRemovals || !(file.flags & FileFlags.remove)))
     {
-        file.thor = &thor;
         file.hash = crc32(0, file.name.toLower);
         files.require(file.hash, file);
     }
-    else if (filters.length == 0)
+    else if (filters.length == 0 && (includeRemovals || !(file.flags & FileFlags.remove)))
     {
-        file.thor = &thor;
         file.hash = crc32(0, file.name.toLower);
         files.require(file.hash, file);
     }

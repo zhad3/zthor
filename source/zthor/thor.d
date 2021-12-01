@@ -1,7 +1,7 @@
 module zthor.thor;
 
 import std.stdio : File;
-import std.typecons : Flag, No;
+import std.typecons : Flag, No, Yes;
 import zthor.constants;
 import zthor.exception;
 import zthor.types;
@@ -92,9 +92,6 @@ in (thor.filehandle.isOpen(), "Filehandle of the THOR struct must be open " ~
 
     thor.header.filecount = littleEndianToNative!uint(buffer[25 .. 29]);
 
-    import std.stdio : writeln;
-    writeln((littleEndianToNative!ushort(buffer[29 .. 31])).to!ContainerMode);
-
     err = collectException!ConvException((littleEndianToNative!ushort(buffer[29 .. 31])).to!ContainerMode,
             thor.header.containerMode);
     enforce!ThorException(!err, err.msg);
@@ -138,19 +135,20 @@ in (thor.filehandle.isOpen(), "Filehandle of the THOR struct must be open " ~
  * Returns:
  *  Input thor for easy chaining
  */
-ref THOR readFiletable(return ref THOR thor, const(wstring)[] filters = [])
+ref THOR readFiletable(return ref THOR thor, const(wstring)[] filters = [],
+        Flag!"includeRemovals" includeRemovals = Yes.includeRemovals)
 {
     if (thor.header.containerMode == ContainerMode.multiple)
     {
         import zthor.filetable : fill;
 
-        fill(thor, thor.files, filters);
+        fill(thor, thor.files, filters, includeRemovals);
     }
     else if (thor.header.containerMode == ContainerMode.single)
     {
         import zthor.filetable : fillSingleFile;
 
-        fillSingleFile(thor, thor.files, filters);
+        fillSingleFile(thor, thor.files, filters, includeRemovals);
     }
 
     return thor;
@@ -168,9 +166,10 @@ ref THOR readFiletable(return ref THOR thor, const(wstring)[] filters = [])
  * Returns:
  *  Input thor for easy chaining
  */
-ref THOR parse(return ref THOR thor, const(wstring)[] filters = [])
+ref THOR parse(return ref THOR thor, const(wstring)[] filters = [],
+        Flag!"includeRemovals" includeRemovals = Yes.includeRemovals)
 {
-    return thor.readHeader().readFiletable(filters);
+    return thor.readHeader().readFiletable(filters, includeRemovals);
 }
 
 /**
