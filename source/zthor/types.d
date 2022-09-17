@@ -60,9 +60,6 @@ struct THORFile
     /// Absolute offset of the file
     uint offset;
 
-    /// Hash of the filename
-    uint hash;
-
     /// File specific flags
     FileFlags flags;
 
@@ -80,7 +77,7 @@ struct THORFile
 }
 
 /// Hashmap of files inside a THOR container
-alias THORFiletable = THORFile[uint];
+alias THORFiletable = THORFile[wstring];
 
 /**
  * Holds information about a THOR file.

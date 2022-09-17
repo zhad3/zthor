@@ -15,7 +15,6 @@ in (thor.filesize > thor.header.filetableOffset, "THOR filesize < Filetable offs
     import std.exception : enforce;
     import std.format : format;
     import std.string : toLower;
-    import std.zlib : crc32;
 
     thor.filehandle.seek(thor.header.filetableOffset, SEEK_SET);
 
@@ -39,8 +38,7 @@ in (thor.filesize > thor.header.filetableOffset, "THOR filesize < Filetable offs
             file.thor = &thor;
             if (inFilter(file, filters) && (includeRemovals || !(file.flags & FileFlags.remove)))
             {
-                file.hash = crc32(0, file.name.toLower);
-                files.require(file.hash, file);
+                files.require(file.name.toLower, file);
             }
         }
     }
@@ -52,8 +50,7 @@ in (thor.filesize > thor.header.filetableOffset, "THOR filesize < Filetable offs
             file.thor = &thor;
             if (includeRemovals || !(file.flags & FileFlags.remove))
             {
-                file.hash = crc32(0, file.name.toLower);
-                files.require(file.hash, file);
+                files.require(file.name.toLower, file);
             }
         }
     }
@@ -68,7 +65,6 @@ in (thor.filesize > cast(ushort) thor.header.containerMode, "THOR filesize < Hea
     import std.bitmanip : read;
     import std.string : toLower;
     import std.system : Endian;
-    import std.zlib : crc32;
 
     thor.filehandle.seek(cast(ushort) thor.header.containerMode, SEEK_SET);
 
@@ -96,13 +92,11 @@ in (thor.filesize > cast(ushort) thor.header.containerMode, "THOR filesize < Hea
 
     if (filters.length > 0 && inFilter(file, filters) && (includeRemovals || !(file.flags & FileFlags.remove)))
     {
-        file.hash = crc32(0, file.name.toLower);
-        files.require(file.hash, file);
+        files.require(file.name.toLower, file);
     }
     else if (filters.length == 0 && (includeRemovals || !(file.flags & FileFlags.remove)))
     {
-        file.hash = crc32(0, file.name.toLower);
-        files.require(file.hash, file);
+        files.require(file.name.toLower, file);
     }
 }
 

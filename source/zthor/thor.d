@@ -251,12 +251,9 @@ ubyte[] getFileData(ref THORFile file, Flag!"useCache" useCache = No.useCache)
 /// ditto
 ubyte[] getFileData(ref THOR thor, const wstring filename, Flag!"useCache" useCache = No.useCache)
 {
-    import std.zlib : crc32;
-
-    const uint hash = crc32(0, filename);
-    if (hash in thor.files)
+    if (filename in thor.files)
     {
-        return getFileData(thor, thor.files[hash], useCache);
+        return getFileData(thor, thor.files[filename], useCache);
     }
     else
     {
