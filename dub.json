@@ -8,7 +8,7 @@
     "name": "zthor",
     "targetType": "library",
     "dependencies": {
-        "zencoding:windows949": "~>1.0.0",
-        "zgrf:compression": "~>1.1.0"
+        "zencoding:windows949": ">=1.0.0",
+        "zgrf:compression": ">=2.0.0"
     }
 }
