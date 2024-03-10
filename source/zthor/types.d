@@ -110,6 +110,12 @@ struct THOR
     THORFiletable files;
 
     /**
+     * Key used to encrypt/decrypt files as done by GRFEditor. This is *not* the plain text password
+     * that is provided when using the encryption feature.
+     */
+    ubyte[] grfEditorKey;
+
+    /**
      * Opens the filehandle and stores the filesize
      *
      * Params:

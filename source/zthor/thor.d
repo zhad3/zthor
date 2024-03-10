@@ -206,6 +206,13 @@ ubyte[] getFileData(ref THOR thor, ref THORFile file, File thorHandle,
     scope ubyte[] compressedData = new ubyte[file.compressed_size];
     thorHandle.rawRead(compressedData);
 
+    bool isGRFEditorEncrypted = thor.isGRFEditorEncrypted(compressedData);
+    if (isGRFEditorEncrypted)
+    {
+        import zgrf.crypto.grfeditor : decrypt;
+        compressedData = decrypt(compressedData, thor.grfEditorKey, file.size);
+    }
+
     import zgrf.compression : uncompress;
 
     if (useCache)
@@ -260,3 +267,32 @@ ubyte[] getFileData(ref THOR thor, const wstring filename, Flag!"useCache" useCa
         return [];
     }
 }
+
+/**
+ * Sets the GRFEditor key for encryption/decryption of data as done
+ * by GRFEditor.
+ */
+ref THOR setGRFEditorKey(return ref THOR thor, ubyte[] key)
+{
+    thor.grfEditorKey = key;
+    return thor;
+}
+
+/**
+ * Checks if the given file data is encrypted using GRFEditors encryption scheme.
+ * Ultimately this checks for the absence of the zlib header as well as the starting
+ * zero byte for LZMA compression.
+ *
+ * Concrete zlib headers
+ * 78 01
+ * 78 5E
+ * 78 9C
+ * 78 DA
+ */
+bool isGRFEditorEncrypted(ref THOR thor, const(ubyte)[] data)
+{
+    auto ret = thor.grfEditorKey.length > 0 && data.length > 2 && data[0] != 0x00
+        && (data[0] != 0x78 || (data[1] != 0x9C && data[1] != 0x01 && data[1] != 0xDA && data[1] != 0x5E));
+    return ret;
+}
+
